@@ -1057,6 +1057,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b);padding:70px 64px 36p
   </ul>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── GO HOME ──
 function goHome(){
@@ -1215,12 +1216,32 @@ function playVid(){
 // ── FAQ ──
 function tfaq(b){const i=b.closest('.fq'),was=i.classList.contains('op');document.querySelectorAll('.fq.op').forEach(x=>x.classList.remove('op'));if(!was)i.classList.add('op')}
 
-// ── NEWSLETTER ──
-function hnl(e){
+// ── NEWSLETTER (Supabase) ──
+const NL_SB_URL='https://fjhhejwpbhxysulrxfbl.supabase.co';
+const NL_SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqaGhlandwYmh4eXN1bHJ4ZmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NDczNzIsImV4cCI6MjA3MDUyMzM3Mn0.D_dnvPM-5XUWBxUllaCiOl8KaSPIcMpGsEiL8kigCGs';
+let NL_SB=null;
+function nlClient(){ if(!NL_SB && window.supabase) NL_SB=window.supabase.createClient(NL_SB_URL,NL_SB_KEY); return NL_SB; }
+async function hnl(e){
   e.preventDefault();
-  const b=e.target.querySelector('button');
-  b.textContent='✓ Angemeldet!';b.style.background='#2ECC71';
-  setTimeout(()=>{b.textContent='Anmelden →';b.style.background='';e.target.reset()},3200);
+  const form=e.target;
+  const b=form.querySelector('button');
+  const inp=form.querySelector('input[type=email]');
+  const email=((inp&&inp.value)||'').trim();
+  if(!email) return;
+  const reset=()=>{b.textContent='Anmelden →';b.style.background='';b.disabled=false;form.reset();};
+  b.disabled=true; b.textContent='…';
+  const sb=nlClient();
+  if(!sb){ b.textContent='Fehler – später nochmal'; setTimeout(reset,3200); return; }
+  try{
+    const { error } = await sb.from('newsletter').insert({ email });
+    if(error){
+      if(error.code==='23505'){ b.textContent='✓ Schon dabei!'; b.style.background='#2ECC71'; }
+      else { b.textContent='Fehler – später nochmal'; }
+    } else {
+      b.textContent='✓ Angemeldet!'; b.style.background='#2ECC71';
+    }
+  }catch(err){ b.textContent='Fehler – später nochmal'; }
+  setTimeout(reset,3200);
 }
 
 // ── DOWNLOAD MODAL ──
