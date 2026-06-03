@@ -728,6 +728,7 @@ footer{background:var(--bg2);border-top:1px solid var(--b);padding:70px 64px 36p
   <p class="rv">Erfahre als Erstes von neuen Features und Festivals.</p>
   <form class="nlf rv" onsubmit="hnl(event)">
     <input type="email" placeholder="E-Mail-Adresse" required>
+    <input type="text" id="nl_hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
     <button type="submit">Anmelden →</button>
   </form>
 </section>
@@ -1216,7 +1217,7 @@ function playVid(){
 // ── FAQ ──
 function tfaq(b){const i=b.closest('.fq'),was=i.classList.contains('op');document.querySelectorAll('.fq.op').forEach(x=>x.classList.remove('op'));if(!was)i.classList.add('op')}
 
-// ── NEWSLETTER (Supabase) ──
+// ── NEWSLETTER (Supabase + einfache Spam-Bremse) ──
 const NL_SB_URL='https://fjhhejwpbhxysulrxfbl.supabase.co';
 const NL_SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqaGhlandwYmh4eXN1bHJ4ZmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NDczNzIsImV4cCI6MjA3MDUyMzM3Mn0.D_dnvPM-5XUWBxUllaCiOl8KaSPIcMpGsEiL8kigCGs';
 let NL_SB=null;
@@ -1226,9 +1227,15 @@ async function hnl(e){
   const form=e.target;
   const b=form.querySelector('button');
   const inp=form.querySelector('input[type=email]');
+  const hp=form.querySelector('#nl_hp');
   const email=((inp&&inp.value)||'').trim();
+  const ok=()=>{ b.textContent='✓ Angemeldet!'; b.style.background='#2ECC71'; };
+  const reset=()=>{ b.textContent='Anmelden →'; b.style.background=''; b.disabled=false; form.reset(); };
   if(!email) return;
-  const reset=()=>{b.textContent='Anmelden →';b.style.background='';b.disabled=false;form.reset();};
+  // Honeypot: nur Bots füllen das unsichtbare Feld -> still ignorieren
+  if(hp && hp.value){ ok(); setTimeout(reset,3200); return; }
+  // Zeitsperre: max. 1 Anmeldung pro Minute pro Browser
+  try{ const last=+(localStorage.getItem('nl_last')||0); if(Date.now()-last<60000){ ok(); setTimeout(reset,3200); return; } }catch(_){}
   b.disabled=true; b.textContent='…';
   const sb=nlClient();
   if(!sb){ b.textContent='Fehler – später nochmal'; setTimeout(reset,3200); return; }
@@ -1238,7 +1245,8 @@ async function hnl(e){
       if(error.code==='23505'){ b.textContent='✓ Schon dabei!'; b.style.background='#2ECC71'; }
       else { b.textContent='Fehler – später nochmal'; }
     } else {
-      b.textContent='✓ Angemeldet!'; b.style.background='#2ECC71';
+      ok();
+      try{ localStorage.setItem('nl_last', String(Date.now())); }catch(_){}
     }
   }catch(err){ b.textContent='Fehler – später nochmal'; }
   setTimeout(reset,3200);
