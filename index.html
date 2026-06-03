@@ -408,10 +408,9 @@ footer{background:var(--bg2);border-top:1px solid var(--b);padding:70px 64px 36p
   .lg-stats,.lg-team{grid-template-columns:1fr 1fr}
   .lg-models{grid-template-columns:1fr}
 }
-/* ── MOBILE OVERFLOW-FIX ── */
-html{overflow-x:hidden}
-img,picture,video,svg{max-width:100%;height:auto}
+/* ── MOBILE OVERFLOW-FIX (nur <=768px; KEIN html-overflow!) ── */
 @media(max-width:768px){
+  img,picture,video,svg{max-width:100%;height:auto}
   .hc{padding-left:20px;padding-right:20px}
   .ht{font-size:clamp(30px,8.5vw,64px)}
   .ht span,.pin-title,.feats-t,.vid-t,.vid-ph-title,.ups-t,.faq-side h2,#nl h2,.zc-title,.upd-title,.dl-title,.lg h1,.lg-blockquote,.cf-title{overflow-wrap:break-word;word-break:break-word;hyphens:auto}
